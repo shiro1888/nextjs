@@ -1,0 +1,26 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.column {
+  width: 1180px;
+  margin: 20px auto;
+  display: flex;
+  gap: 20px;
+}
+.column .item {
+  flex: 1;
+}
+.column .item a {
+  width: 100%;
+  margin-bottom: 15px;
+  border-radius: 18px;
+  overflow: hidden;
+  display: block;
+}
+.column .item a img {
+  width: 100%;
+  display: block;
+}
