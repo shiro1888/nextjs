@@ -1,0 +1,39 @@
+/* 网页的头部 */
+.w {
+  width: 1240px;
+  margin: 0 auto;
+}
+.w a {
+  color: #fff;
+  font-size: 13px;
+}
+.shortcut {
+  height: 52px;
+  background-color: #333;
+}
+.shortcut ul {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: 52px;
+}
+.shortcut .line {
+  width: 1px;
+  height: 12px;
+  background-color: #999;
+  margin: 0 15px;
+}
+.shortcut .mobile-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  fill: currentColor;
+  vertical-align: -3px;
+}
+.shortcut ul li:first-child a {
+  color: #5eb69c;
+}
+.shortcut ul li a:hover {
+  color: #5eb69c;
+}
+/* 网页的底部 */
