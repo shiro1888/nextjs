@@ -36,4 +36,88 @@
 .shortcut ul li a:hover {
   color: #5eb69c;
 }
+.header {
+  height: 132px;
+  background-color: rgb(169, 86, 169);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.header .logo {
+  width: 200px;
+  height: 88px;
+  background-color: skyblue;
+}
+.header .logo h1 {
+  width: 100%;
+  height: 100%;
+}
+.header .logo h1 a {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: url("../assets/小兔鲜儿logo.png");
+  font-size: 0;
+}
+.header .nav {
+  display: flex;
+  align-items: center;
+  gap: 47px;
+  margin-left: 41px;
+}
+
+.header .nav li a {
+  font-size: 16px;
+  height: 40px;
+  line-height: 40px;
+  color: #fff;
+  position: relative;
+}
+.header .nav li:first-child a {
+  color: #5eb69c;
+}
+.header .nav li a:hover {
+  color: #5eb69c;
+}
+.header .nav li a::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #5eb69c;
+  transform: scale(0);
+  transition: transform 0.3s;
+}
+.header .nav li a:hover::after {
+  transform: scale(1);
+}
+.search {
+  position: relative;
+}
+.search input {
+  width: 170px;
+  height: 40px;
+  border-bottom: 2px solid #f4f4f4;
+  padding-left: 28px;
+  font-size: 16px;
+}
+.search input ::placeholder {
+  color: #ccc;
+  font-size: 16px;
+}
+.search i {
+  background: url("../img/放大镜.png");
+  position: absolute;
+  left: 0px;
+  height: 20px;
+  width: 20px;
+}
+.car {
+  background: url("../img/购物车空.png");
+  height: 20px;
+  width: 20px;
+  margin-left: 20px;
+}
 /* 网页的底部 */
