@@ -1,0 +1,12 @@
+# 工具自动生成的缓存目录
+.playwright-mcp/
+.wrangler/
+
+# 依赖与构建产物(以后做 React/Next.js 项目会用到)
+node_modules/
+.next/
+dist/
+
+# 环境变量(里面会放 API key,绝不能上传)
+.env
+.env*.local
