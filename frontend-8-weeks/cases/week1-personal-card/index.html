@@ -6,6 +6,7 @@
   【怎么运行】双击本文件,用浏览器打开即可;按 F12 → 切换设备工具栏,
             把宽度调到 375px 看窄屏效果
   【使用规则】必须自己先写完并让 AI 验收后,才能打开本文件对照!
+  【UI 说明】本案例使用统一设计系统,令牌含义见注释
 -->
 <html lang="zh-CN">
 <head>
@@ -14,6 +15,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>个人名片</title>
   <style>
+    /* ===== 设计令牌:整套案例共用的 CSS 变量,含义见注释 ===== */
+    :root {
+      --brand: #0e9f6e;        /* 主色:清新绿(呼应小兔鲜) */
+      --brand-dark: #057a55;   /* hover 加深 */
+      --brand-soft: #e6f6f0;   /* 主色浅底(标签、选中态背景) */
+      --ink: #111827;          /* 主文字 */
+      --ink-2: #6b7280;        /* 次要文字 */
+      --bg: #f2f5f4;           /* 页面画布:带一点绿意的浅灰 */
+      --card: #ffffff;
+      --line: #e5e7eb;
+      --danger: #dc2626;
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(16,24,40,.05), 0 10px 28px rgba(16,24,40,.07);
+    }
+
     /* 通配符清零:浏览器默认给 body、h1 等加了 margin,先清掉才好精确控制 */
     * {
       margin: 0;
@@ -23,24 +39,54 @@
     }
 
     body {
-      /* 让卡片在整个视口里水平垂直居中:Flex 三件套 */
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      /* 让内容在整个视口里水平垂直居中:
+         原版用的是"Flex 三件套",统一骨架改用 grid 一行居中,效果等价;
+         Flex 的居中与换行仍然在下面的 .avatar 和 .tags 里练 */
+      display: grid;
+      place-items: center;
       min-height: 100vh; /* 至少占满一屏高,居中才有意义 */
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-      padding: 20px; /* 窄屏时卡片不会贴着屏幕边缘 */
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      padding: 24px; /* 窄屏时卡片不会贴着屏幕边缘 */
+    }
+
+    .page {
+      width: 100%;
+      max-width: 380px; /* 宽屏最多 380px,窄屏自动缩到 100%,这就是最简单的响应式 */
+    }
+
+    /* 案例头部:eyebrow 小标签 + 标题 + 一句话说明 */
+    .case-head { margin-bottom: 16px; }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--brand);
+    }
+
+    .case-title {
+      font-size: 21px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .case-desc {
+      font-size: 14px;
+      color: var(--ink-2);
+      margin-top: 4px;
+      line-height: 1.6;
     }
 
     .card {
-      background: #fff;
+      background: var(--card);
       width: 100%;
-      max-width: 380px; /* 宽屏最多 380px,窄屏自动缩到 100%,这就是最简单的响应式 */
-      border-radius: 16px;
-      /* 阴影:x偏移 y偏移 模糊半径 颜色,rgba 最后一位是透明度 */
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-      padding: 40px 30px;
+      border-radius: var(--radius);
+      /* 阴影抽成令牌 --shadow:双层阴影,近处一层描边感 + 远处一层弥散感 */
+      box-shadow: var(--shadow);
+      padding: 32px 28px;
       text-align: center;
     }
 
@@ -49,25 +95,26 @@
       height: 100px;
       /* 圆形头像的关键:正方形 + 圆角 50% */
       border-radius: 50%;
-      background: linear-gradient(135deg, #ffd89b, #f7797d);
+      background: linear-gradient(135deg, var(--brand), #34d399);
       /* 用 Flex 让 emoji 在圆里居中 */
       display: flex;
       justify-content: center;
       align-items: center;
       font-size: 48px;
       margin: 0 auto 20px; /* 左右 auto = 块级元素水平居中 */
-      border: 4px solid #f0f0f0;
+      border: 4px solid var(--brand-soft);
     }
 
     .name {
-      font-size: 24px;
-      color: #333;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
       margin-bottom: 8px;
     }
 
     .intro {
       font-size: 14px;
-      color: #888;
+      color: var(--ink-2);
       line-height: 1.6;
       margin-bottom: 24px;
     }
@@ -81,36 +128,46 @@
     }
 
     .tag {
-      /* 胶囊样式:小 padding + 超大圆角 */
+      /* 胶囊样式:小 padding + 超大圆角;主色浅底 + 深字,对比够又不刺眼 */
       padding: 6px 14px;
       border-radius: 999px;
       font-size: 13px;
-      background: #eef2ff;
-      color: #5a67d8;
+      font-weight: 500;
+      background: var(--brand-soft);
+      color: var(--brand-dark);
     }
 
     .contact-btn {
       display: inline-block;
-      padding: 12px 40px;
+      padding: 10px 18px;
       border: none;
-      border-radius: 999px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 10px;
+      background: var(--brand);
       color: #fff;
-      font-size: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit; /* button 默认不继承字体,手动继承一下 */
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
     }
 
     /* hover 给用户"这个能点"的反馈 */
     .contact-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+      background: var(--brand-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(14, 159, 110, .35);
+    }
+
+    /* 键盘 Tab 聚焦时的可见焦点圈:无障碍必备 */
+    .contact-btn:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
     }
 
     /* 窄屏(手机)适配:屏幕宽 ≤480px 时,适当缩小内边距和字号 */
     @media (max-width: 480px) {
       .card {
-        padding: 30px 20px;
+        padding: 28px 20px;
       }
       .avatar {
         width: 80px;
@@ -121,22 +178,38 @@
         font-size: 20px;
       }
     }
+
+    /* 用户系统开了"减少动态效果"时,关闭全部过渡动画 */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <!-- 图片用渐变色块 + emoji 代替,不依赖外部文件 -->
-    <div class="avatar">🐰</div>
-    <h1 class="name">小白同学</h1>
-    <p class="intro">零基础转行前端中,目标是 8 周写出自己的 Next.js 项目。</p>
-    <div class="tags">
-      <span class="tag">HTML</span>
-      <span class="tag">CSS</span>
-      <span class="tag">JavaScript</span>
-      <span class="tag">React</span>
-      <span class="tag">Next.js</span>
+  <div class="page">
+    <header class="case-head">
+      <div class="eyebrow">WEEK 1 · HTML/CSS</div>
+      <h1 class="case-title">个人名片页</h1>
+      <p class="case-desc">盒模型、Flex 居中与换行、渐变与媒体查询,一张卡片全练到。</p>
+    </header>
+
+    <div class="card">
+      <!-- 图片用渐变色块 + emoji 代替,不依赖外部文件 -->
+      <div class="avatar">🐰</div>
+      <h2 class="name">小白同学</h2>
+      <p class="intro">零基础转行前端中,目标是 8 周写出自己的 Next.js 项目。</p>
+      <div class="tags">
+        <span class="tag">HTML</span>
+        <span class="tag">CSS</span>
+        <span class="tag">JavaScript</span>
+        <span class="tag">React</span>
+        <span class="tag">Next.js</span>
+      </div>
+      <button class="contact-btn">联系我</button>
     </div>
-    <button class="contact-btn">联系我</button>
   </div>
 </body>
 </html>

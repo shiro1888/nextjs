@@ -9,72 +9,191 @@
   【怎么运行】双击本文件,用浏览器打开即可,无需任何服务器
   【使用规则】必须自己先写完一版、并让 AI 验收通过之后,
              才能打开本文件对照学习,否则等于抄答案,练不到手!
+  【UI 说明】本案例使用统一设计系统,令牌含义见注释
 -->
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <title>Todo List</title>
   <style>
+    /* ===== 设计令牌:整套案例共用一套变量,换主题只改这里 ===== */
+    :root {
+      --brand: #0e9f6e;        /* 主色:清新绿(呼应小兔鲜) */
+      --brand-dark: #057a55;   /* hover 加深 */
+      --brand-soft: #e6f6f0;   /* 主色浅底(标签、选中态背景) */
+      --ink: #111827;          /* 主文字 */
+      --ink-2: #6b7280;        /* 次要文字 */
+      --bg: #f2f5f4;           /* 页面画布:带一点绿意的浅灰 */
+      --card: #ffffff;
+      --line: #e5e7eb;
+      --danger: #dc2626;
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(16,24,40,.05), 0 10px 28px rgba(16,24,40,.07);
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      padding-top: 60px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      font-family: sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     }
+    /* 内容区:白色卡片 */
     .todo-app {
       width: 480px;
-      background: #fff;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-      align-self: flex-start;
+      max-width: 100%;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
     }
-    h1 { font-size: 22px; margin-bottom: 16px; color: #333; }
+    .case-head { margin-bottom: 18px; }
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--brand);
+    }
+    h1 { font-size: 21px; font-weight: 700; margin: 6px 0 4px; color: var(--ink); }
+    .case-head p { font-size: 14px; color: var(--ink-2); }
+
     .input-row { display: flex; gap: 8px; }
     .todo-input {
       flex: 1;
       padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font: inherit;
       font-size: 14px;
+      color: var(--ink);
+      transition: border-color .15s ease, box-shadow .15s ease;
     }
+    .todo-input::placeholder { color: var(--ink-2); }
+    .todo-input:hover { border-color: #d1d5db; }
+    .todo-input:focus, .todo-input:focus-visible {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(14, 159, 110, 0.18);
+    }
+    /* 主按钮:品牌绿底白字 */
     .add-btn {
-      padding: 10px 20px;
+      padding: 10px 18px;
       border: none;
-      border-radius: 6px;
-      background: #667eea;
+      border-radius: 10px;
+      background: var(--brand);
       color: #fff;
+      font: inherit;
       font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
+      transition: background .15s ease, transform .15s ease;
     }
+    .add-btn:hover { background: var(--brand-dark); transform: translateY(-1px); }
+    .add-btn:focus-visible {
+      outline: none;
+      background: var(--brand-dark);
+      box-shadow: 0 0 0 3px rgba(14, 159, 110, 0.35);
+    }
+
     .todo-list { list-style: none; margin-top: 16px; }
+    /* 空列表:设计过的空状态,而不是光秃秃一片空白 */
+    .todo-list:empty::after {
+      content: '今天还没有任务 ✨';
+      display: block;
+      padding: 28px 16px;
+      text-align: center;
+      font-size: 14px;
+      color: var(--ink-2);
+      background: var(--brand-soft);
+      border: 1px dashed rgba(14, 159, 110, 0.35);
+      border-radius: 10px;
+    }
     .todo-item {
       display: flex;
       align-items: center;
       gap: 10px;
       padding: 10px 4px;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--line);
+      transition: background .15s ease;
     }
-    .todo-item span { flex: 1; color: #333; }
+    .todo-item:last-child { border-bottom: none; }
+    .todo-item:hover { background: rgba(14, 159, 110, 0.04); }
+    /* 自定义复选框:选中时变成品牌绿圆形对勾 */
+    .todo-item input[type='checkbox'] {
+      appearance: none;
+      flex: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease;
+    }
+    .todo-item input[type='checkbox']:hover { border-color: var(--brand); }
+    .todo-item input[type='checkbox']:focus-visible {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(14, 159, 110, 0.18);
+    }
+    .todo-item input[type='checkbox']:checked {
+      background: var(--brand);
+      border-color: var(--brand);
+    }
+    .todo-item input[type='checkbox']:checked::after {
+      content: '✓';
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .todo-item span { flex: 1; font-size: 14px; color: var(--ink); }
     /* 完成的任务:文字划线变灰 */
-    .todo-item.done span { text-decoration: line-through; color: #aaa; }
+    .todo-item.done span { text-decoration: line-through; color: var(--ink-2); }
+    /* 删除:危险色幽灵按钮,平时隐身,悬停任务项或键盘聚焦时出现 */
     .del {
       border: none;
-      background: #ffecec;
-      color: #e4393c;
+      background: transparent;
+      color: var(--danger);
       padding: 4px 10px;
-      border-radius: 4px;
+      border-radius: 8px;
+      font: inherit;
+      font-size: 13px;
       cursor: pointer;
+      opacity: 0;
+      transition: opacity .15s ease, background .15s ease;
     }
-    .count { margin-top: 14px; font-size: 13px; color: #888; }
+    .todo-item:hover .del, .del:focus-visible { opacity: 1; }
+    .del:hover { background: rgba(220, 38, 38, 0.08); }
+    .del:focus-visible {
+      outline: none;
+      background: rgba(220, 38, 38, 0.08);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+    }
+    .count {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--ink-2);
+      font-variant-numeric: tabular-nums; /* 计数数字等宽,增减时不跳动 */
+    }
+
+    /* 尊重系统「减弱动态效果」:关闭过渡动画 */
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
   </style>
 </head>
 <body>
   <div class="todo-app">
-    <h1>我的待办清单</h1>
+    <header class="case-head">
+      <span class="eyebrow">WEEK 3 · 状态驱动渲染</span>
+      <h1>我的待办清单</h1>
+      <p>todos 数组是唯一真相来源,数据一变,列表整个重画。</p>
+    </header>
     <div class="input-row">
       <input class="todo-input" type="text" placeholder="输入任务,回车或点添加" />
       <button class="add-btn">添加</button>
@@ -133,7 +252,8 @@
 
     document.querySelector('.add-btn').addEventListener('click', addTodo);
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') addTodo();
+      // e.isComposing:中文输入法里按 Enter 只是确认候选词,不算「提交任务」
+      if (e.key === 'Enter' && !e.isComposing) addTodo();
     });
 
     // 事件委托:删除按钮、复选框都是 render 时重新生成的,

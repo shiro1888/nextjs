@@ -3,83 +3,282 @@
   【案例名】ATM 取款机
   【练什么】while 循环、if/else if 分支、prompt/alert 交互、
             数字转换与非法输入校验
-  【怎么运行】双击本文件,用浏览器打开,会自动弹出输入框;
+  【怎么运行】双击本文件,用浏览器打开,点击「插卡开机」按钮开始操作;
             同时按 F12 打开控制台,能看到每笔操作的流水记录
   【使用规则】必须自己先写完并让 AI 验收后,才能打开本文件对照!
+  【UI 说明】本案例使用统一设计系统,令牌含义见注释
 -->
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ATM 取款机</title>
+  <style>
+    /* ===== 设计令牌:整套案例共用的 CSS 变量,含义见注释 ===== */
+    :root {
+      --brand: #0e9f6e;        /* 主色:清新绿(呼应小兔鲜) */
+      --brand-dark: #057a55;   /* hover 加深 */
+      --brand-soft: #e6f6f0;   /* 主色浅底(标签、选中态背景) */
+      --ink: #111827;          /* 主文字 */
+      --ink-2: #6b7280;        /* 次要文字 */
+      --bg: #f2f5f4;           /* 页面画布:带一点绿意的浅灰 */
+      --card: #ffffff;
+      --line: #e5e7eb;
+      --danger: #dc2626;
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(16,24,40,.05), 0 10px 28px rgba(16,24,40,.07);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      padding: 24px;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    /* 案例头部:eyebrow 小标签 + 标题 + 一句话说明 */
+    .case-head { margin-bottom: 16px; }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--brand);
+    }
+
+    .case-title {
+      font-size: 21px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .case-desc {
+      font-size: 14px;
+      color: var(--ink-2);
+      margin-top: 4px;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    /* 余额面板:主色浅底,数字用 tabular-nums 等宽,跳动时不会左右晃 */
+    .balance-panel {
+      background: var(--brand-soft);
+      border-radius: 10px;
+      padding: 18px 20px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .balance-label {
+      font-size: 12px;
+      letter-spacing: .08em;
+      color: var(--brand-dark);
+      margin-bottom: 6px;
+    }
+
+    .balance-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .balance-unit {
+      font-size: 14px;
+      color: var(--ink-2);
+      margin-left: 6px;
+    }
+
+    .start-btn {
+      display: block;
+      width: 100%;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      background: var(--brand);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
+    }
+
+    .start-btn:hover {
+      background: var(--brand-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(14, 159, 110, .35);
+    }
+
+    .start-btn:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }
+
+    /* 提示条:控制台流水说明,设计过的"说明态"而不是光秃秃一行字 */
+    .hint {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: var(--brand-soft);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--brand-dark);
+      margin-top: 20px;
+    }
+
+    .hint kbd {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 12px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      padding: 1px 6px;
+    }
+
+    .footnote {
+      font-size: 12px;
+      color: var(--ink-2);
+      line-height: 1.7;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>ATM 取款机(纯 JS 弹窗版)</h1>
-  <p>打开页面会自动弹出操作菜单;按 F12 打开控制台可以看到操作流水。</p>
-  <p>如果不小心点了取消,刷新页面可以重新开始。</p>
+  <div class="page">
+    <header class="case-head">
+      <div class="eyebrow">WEEK 2 · 循环与分支</div>
+      <h1 class="case-title">ATM 取款机</h1>
+      <p class="case-desc">while 死循环 + break 的经典菜单程序,用 prompt/alert 完成交互。</p>
+    </header>
+
+    <div class="card">
+      <div class="balance-panel">
+        <div class="balance-label">当前余额</div>
+        <div>
+          <span class="balance-number" id="balance-number">100</span><span class="balance-unit">元</span>
+        </div>
+      </div>
+
+      <button class="start-btn" id="start-btn">💳 插卡开机</button>
+
+      <div class="hint">
+        <span>💡</span>
+        <div>点击上方按钮弹出操作菜单;按 <kbd>F12</kbd> 打开控制台可以看到每笔操作的流水记录。</div>
+      </div>
+      <p class="footnote">不小心点了「取消」也没关系:再点一次按钮可以继续操作,刷新页面则重新开始。</p>
+    </div>
+  </div>
 
   <script>
     // 余额用 let:因为存取款会修改它;菜单文字不变,用 const
     let balance = 100;
     const menu = '请输入操作编号:\n1 存款\n2 取款\n3 查余额\n4 退出';
 
-    // 死循环 + break 是"菜单程序"的经典写法:
-    // 不知道用户要操作几次,所以循环条件写 true,由"4 退出"来跳出
-    while (true) {
-      const input = prompt(menu);
+    // 【UI 改动】把余额同步显示到卡片上:只负责"展示",不参与任何校验逻辑
+    const balanceEl = document.querySelector('#balance-number');
+    const renderBalance = () => {
+      balanceEl.textContent = balance;
+    };
+    renderBalance();
 
-      // 用户点了"取消"按钮时 prompt 返回 null,当成退出处理,避免死循环
-      if (input === null) {
-        alert('已取消操作,退出系统');
-        console.log('[流水] 用户取消,退出');
-        break;
+    // 【UI 改动】原版页面一打开就执行 while 循环,页面还没渲染完就开始弹窗;
+    // 现在把整个流程原封不动包进「插卡开机」按钮的 click 事件里,
+    // 循环体内的分支和校验逻辑与原版完全一致
+    document.querySelector('#start-btn').addEventListener('click', () => {
+      // 死循环 + break 是"菜单程序"的经典写法:
+      // 不知道用户要操作几次,所以循环条件写 true,由"4 退出"来跳出
+      while (true) {
+        const input = prompt(menu);
+
+        // 用户点了"取消"按钮时 prompt 返回 null,当成退出处理,避免死循环
+        if (input === null) {
+          alert('已取消操作,退出系统');
+          console.log('[流水] 用户取消,退出');
+          break;
+        }
+
+        if (input === '1') {
+          // prompt 拿到的永远是字符串,必须用 Number() 转成数字再做加减
+          const amount = Number(prompt('请输入存款金额:'));
+
+          // 三种非法情况一起拦:不是数字(NaN)、零、负数
+          if (Number.isNaN(amount) || amount <= 0) {
+            alert('金额不合法,请输入大于 0 的数字');
+            console.log('[流水] 存款失败:非法金额');
+            continue; // 跳过本次循环剩余代码,直接回到菜单
+          }
+
+          balance = balance + amount;
+          renderBalance(); // 【UI 改动】操作成功后同步更新卡片上的余额文字
+          alert(`存款成功!当前余额:${balance} 元`);
+          console.log(`[流水] 存款 ${amount} 元,余额 ${balance} 元`);
+        } else if (input === '2') {
+          const amount = Number(prompt('请输入取款金额:'));
+
+          if (Number.isNaN(amount) || amount <= 0) {
+            alert('金额不合法,请输入大于 0 的数字');
+            console.log('[流水] 取款失败:非法金额');
+            continue;
+          }
+
+          // 关键校验:先判断够不够,不够就不动余额,保证永远不会取成负数
+          if (amount > balance) {
+            alert(`余额不足!当前余额只有 ${balance} 元`);
+            console.log(`[流水] 取款失败:想取 ${amount} 元,余额仅 ${balance} 元`);
+            continue;
+          }
+
+          balance = balance - amount;
+          renderBalance(); // 【UI 改动】操作成功后同步更新卡片上的余额文字
+          alert(`取款成功!当前余额:${balance} 元`);
+          console.log(`[流水] 取款 ${amount} 元,余额 ${balance} 元`);
+        } else if (input === '3') {
+          alert(`当前余额:${balance} 元`);
+          console.log(`[流水] 查询余额:${balance} 元`);
+        } else if (input === '4') {
+          alert('感谢使用,再见!');
+          console.log('[流水] 正常退出');
+          break; // 唯一的正常出口:跳出 while 循环,程序结束
+        } else {
+          // 走到这里说明输入不是 1~4,提示后循环会自动回到菜单
+          alert(`没有「${input}」这个选项,请输入 1、2、3 或 4`);
+          console.log(`[流水] 非法输入:${input}`);
+        }
       }
-
-      if (input === '1') {
-        // prompt 拿到的永远是字符串,必须用 Number() 转成数字再做加减
-        const amount = Number(prompt('请输入存款金额:'));
-
-        // 三种非法情况一起拦:不是数字(NaN)、零、负数
-        if (Number.isNaN(amount) || amount <= 0) {
-          alert('金额不合法,请输入大于 0 的数字');
-          console.log('[流水] 存款失败:非法金额');
-          continue; // 跳过本次循环剩余代码,直接回到菜单
-        }
-
-        balance = balance + amount;
-        alert(`存款成功!当前余额:${balance} 元`);
-        console.log(`[流水] 存款 ${amount} 元,余额 ${balance} 元`);
-      } else if (input === '2') {
-        const amount = Number(prompt('请输入取款金额:'));
-
-        if (Number.isNaN(amount) || amount <= 0) {
-          alert('金额不合法,请输入大于 0 的数字');
-          console.log('[流水] 取款失败:非法金额');
-          continue;
-        }
-
-        // 关键校验:先判断够不够,不够就不动余额,保证永远不会取成负数
-        if (amount > balance) {
-          alert(`余额不足!当前余额只有 ${balance} 元`);
-          console.log(`[流水] 取款失败:想取 ${amount} 元,余额仅 ${balance} 元`);
-          continue;
-        }
-
-        balance = balance - amount;
-        alert(`取款成功!当前余额:${balance} 元`);
-        console.log(`[流水] 取款 ${amount} 元,余额 ${balance} 元`);
-      } else if (input === '3') {
-        alert(`当前余额:${balance} 元`);
-        console.log(`[流水] 查询余额:${balance} 元`);
-      } else if (input === '4') {
-        alert('感谢使用,再见!');
-        console.log('[流水] 正常退出');
-        break; // 唯一的正常出口:跳出 while 循环,程序结束
-      } else {
-        // 走到这里说明输入不是 1~4,提示后循环会自动回到菜单
-        alert(`没有「${input}」这个选项,请输入 1、2、3 或 4`);
-        console.log(`[流水] 非法输入:${input}`);
-      }
-    }
+    });
   </script>
 </body>
 </html>

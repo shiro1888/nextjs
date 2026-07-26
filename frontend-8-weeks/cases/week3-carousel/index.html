@@ -8,28 +8,64 @@
   【怎么运行】双击本文件,用浏览器打开即可,无需任何服务器
   【使用规则】必须自己先写完一版、并让 AI 验收通过之后,
              才能打开本文件对照学习,否则等于抄答案,练不到手!
+  【UI 说明】本案例使用统一设计系统,令牌含义见注释
 -->
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <title>轮播图</title>
   <style>
+    /* ===== 设计令牌:整套案例共用一套变量,换主题只改这里 ===== */
+    :root {
+      --brand: #0e9f6e;        /* 主色:清新绿(呼应小兔鲜) */
+      --brand-dark: #057a55;   /* hover 加深 */
+      --brand-soft: #e6f6f0;   /* 主色浅底(标签、选中态背景) */
+      --ink: #111827;          /* 主文字 */
+      --ink-2: #6b7280;        /* 次要文字 */
+      --bg: #f2f5f4;           /* 页面画布:带一点绿意的浅灰 */
+      --card: #ffffff;
+      --line: #e5e7eb;
+      --danger: #dc2626;
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(16,24,40,.05), 0 10px 28px rgba(16,24,40,.07);
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #f0f2f5;
-      font-family: sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     }
+    /* 内容区:白色卡片,案例头部 + 轮播图 */
+    .case-card {
+      width: 656px;
+      max-width: 100%;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+    .case-head { margin-bottom: 20px; }
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--brand);
+    }
+    .case-head h1 { font-size: 21px; font-weight: 700; margin: 6px 0 4px; }
+    .case-head p { font-size: 14px; color: var(--ink-2); }
+
     .carousel {
       position: relative;
       width: 600px;
+      max-width: 100%;
       height: 320px;
       overflow: hidden; /* 关键:把滑出可视区的幻灯片裁掉,只露出当前一张 */
       border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     }
     /* track 是一条横向长带,4 张幻灯片并排;移动 track 就能切换画面 */
     .track {
@@ -42,29 +78,41 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 80px;
-      font-weight: bold;
-      color: #fff;
+      font-size: 72px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums; /* 编号数字等宽,切换时不跳动 */
+      color: rgba(255, 255, 255, 0.92);
     }
-    /* 用 CSS 渐变色块代替图片,免去图片文件 */
-    .slide:nth-child(1) { background: linear-gradient(135deg, #667eea, #764ba2); }
-    .slide:nth-child(2) { background: linear-gradient(135deg, #f5576c, #f093fb); }
-    .slide:nth-child(3) { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-    .slide:nth-child(4) { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+    /* 用 CSS 渐变色块代替图片,免去图片文件;四组品牌系渐变:绿→青、青→蓝、蓝→靛、深绿→翠绿 */
+    .slide:nth-child(1) { background: linear-gradient(135deg, #0e9f6e, #14b8a6); }
+    .slide:nth-child(2) { background: linear-gradient(135deg, #14b8a6, #0ea5e9); }
+    .slide:nth-child(3) { background: linear-gradient(135deg, #0ea5e9, #6366f1); }
+    .slide:nth-child(4) { background: linear-gradient(135deg, #057a55, #10b981); }
+    /* 箭头:半透明白色圆形按钮悬浮两侧,hover / 键盘聚焦时变实 */
     .arrow {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       border: none;
       border-radius: 50%;
-      background: rgba(0, 0, 0, 0.3);
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.35);
       color: #fff;
-      font-size: 20px;
+      font-size: 18px;
+      line-height: 1;
       cursor: pointer;
+      transition: background .15s ease, color .15s ease;
     }
-    .arrow:hover { background: rgba(0, 0, 0, 0.6); }
+    .arrow:hover { background: #fff; color: var(--brand-dark); }
+    .arrow:focus-visible {
+      outline: none;
+      background: #fff;
+      color: var(--brand-dark);
+      box-shadow: 0 0 0 3px rgba(14, 159, 110, 0.45);
+    }
     .prev { left: 12px; }
     .next { right: 12px; }
     .dots {
@@ -73,29 +121,43 @@
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 10px;
+      gap: 8px;
     }
     .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.5);
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.55);
       cursor: pointer;
+      transition: width .2s ease, background .15s ease;
     }
-    .dot.active { background: #fff; }
+    .dot:hover { background: rgba(255, 255, 255, 0.85); }
+    .dot.active { width: 24px; background: #fff; } /* 当前项拉长成胶囊 */
+
+    /* 尊重系统「减弱动态效果」:关闭过渡动画(自动播放在 JS 里同步停掉) */
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
   </style>
 </head>
 <body>
-  <div class="carousel">
-    <div class="track">
-      <div class="slide">1</div>
-      <div class="slide">2</div>
-      <div class="slide">3</div>
-      <div class="slide">4</div>
+  <div class="case-card">
+    <header class="case-head">
+      <span class="eyebrow">WEEK 3 · DOM 综合</span>
+      <h1>轮播图 Carousel</h1>
+      <p>自动播放 + 箭头切换 + 圆点跳转,悬停暂停、移出恢复。</p>
+    </header>
+    <div class="carousel">
+      <div class="track">
+        <div class="slide">1</div>
+        <div class="slide">2</div>
+        <div class="slide">3</div>
+        <div class="slide">4</div>
+      </div>
+      <button class="arrow prev">&lt;</button>
+      <button class="arrow next">&gt;</button>
+      <div class="dots"></div>
     </div>
-    <button class="arrow prev">&lt;</button>
-    <button class="arrow next">&gt;</button>
-    <div class="dots"></div>
   </div>
 
   <script>
@@ -135,9 +197,13 @@
 
     const stop = () => clearInterval(timer);
 
+    // 用户系统开启「减弱动态效果」时不自动播放(手动切换不受影响)
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
     // 开播前先 stop():防止重复调用 play() 叠加多个定时器,越滚越快
     const play = () => {
       stop();
+      if (reduceMotion.matches) return; // 减弱动态效果:不开自动播放
       timer = setInterval(() => goTo(current + 1), 2000);
     };
 

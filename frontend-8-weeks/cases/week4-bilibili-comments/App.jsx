@@ -10,6 +10,7 @@
   2. 用本文件内容替换 my-app/src/App.jsx
   3. cd my-app 后执行 npm install,再执行 npm run dev,浏览器打开终端提示的地址
 【使用规则】必须自己先写完并让 AI 验收后,才能打开本文件对照。
+【UI 说明】本案例使用统一设计系统,令牌含义见注释。
 */
 import { useState } from 'react';
 
@@ -26,7 +27,13 @@ const defaultList = [
 ];
 
 // 没有头像图片,就用"彩色圆圈 + 名字首字"代替;颜色按 uid 取模,同一个人永远同色
-const colors = ['#fb7299', '#00aeec', '#ffb027', '#9499a0', '#67c23a'];
+const colors = [
+  'linear-gradient(135deg, #0e9f6e, #057a55)',
+  'linear-gradient(135deg, #34d399, #057a55)',
+  'linear-gradient(135deg, #057a55, #04503a)',
+  'linear-gradient(135deg, #10b981, #047857)',
+  'linear-gradient(135deg, #2dd4a5, #0e9f6e)',
+];
 const avatarColor = (uid) => colors[uid % colors.length];
 
 const App = () => {
@@ -61,24 +68,62 @@ const App = () => {
   return (
     <div className="app">
       <style>{`
-        .app { max-width: 640px; margin: 24px auto; padding: 0 16px; font-family: system-ui, sans-serif; color: #18191c; }
-        .head { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #e3e5e7; padding-bottom: 12px; }
-        .head h3 { margin: 0; font-size: 18px; }
-        .count { color: #9499a0; font-size: 13px; }
-        .tabs { margin-left: auto; display: flex; gap: 4px; }
-        .tabs button { border: none; background: none; padding: 4px 10px; cursor: pointer; font-size: 14px; color: #61666d; }
-        .tabs button.active { color: #00aeec; font-weight: 700; }
-        .item { display: flex; gap: 12px; padding: 16px 0; border-bottom: 1px solid #f1f2f3; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-        .body { flex: 1; }
-        .author { font-size: 13px; color: #61666d; margin-bottom: 4px; }
-        .mine { color: #fb7299; border: 1px solid #fb7299; border-radius: 4px; font-size: 11px; padding: 0 4px; margin-left: 6px; }
-        .content { font-size: 15px; line-height: 1.6; margin: 0; }
-        .foot { margin-top: 6px; font-size: 13px; color: #9499a0; display: flex; gap: 16px; align-items: center; }
-        .foot button { border: none; background: none; cursor: pointer; color: #9499a0; font-size: 13px; padding: 0; }
-        .foot button.liked { color: #00aeec; }
-        .foot button.del:hover { color: #fb7299; }
+        :root {
+          --brand: #0e9f6e;        /* 主色:清新绿(呼应小兔鲜) */
+          --brand-dark: #057a55;   /* hover 加深 */
+          --brand-soft: #e6f6f0;   /* 主色浅底(标签、选中态背景) */
+          --ink: #111827;          /* 主文字 */
+          --ink-2: #6b7280;        /* 次要文字 */
+          --bg: #f2f5f4;           /* 页面画布:带一点绿意的浅灰 */
+          --card: #ffffff;
+          --line: #e5e7eb;
+          --danger: #dc2626;
+          --radius: 14px;
+          --shadow: 0 1px 2px rgba(16,24,40,.05), 0 10px 28px rgba(16,24,40,.07);
+        }
+        * { box-sizing: border-box; }
+        body {
+          margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px;
+          background: var(--bg);
+          font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        .app { width: min(680px, 100%); background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px 32px; color: var(--ink); }
+        .eyebrow { margin: 0 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--brand); }
+        .case-title { margin: 0 0 4px; font-size: 21px; font-weight: 700; }
+        .case-desc { margin: 0; font-size: 14px; color: var(--ink-2); }
+        .head { display: flex; align-items: center; gap: 10px; margin-top: 22px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+        .head h3 { margin: 0; font-size: 16px; }
+        .count { color: var(--ink-2); font-size: 13px; font-variant-numeric: tabular-nums; }
+        /* 胶囊分段控件:浅灰槽 + 选中项白底浮起 */
+        .tabs { margin-left: auto; display: flex; gap: 2px; padding: 3px; background: var(--bg); border-radius: 999px; }
+        .tabs button { border: none; background: none; padding: 5px 14px; border-radius: 999px; cursor: pointer; font-size: 13px; color: var(--ink-2); transition: all .15s ease; }
+        .tabs button:hover { color: var(--ink); }
+        .tabs button.active { background: var(--card); color: var(--brand-dark); font-weight: 600; box-shadow: 0 1px 3px rgba(16,24,40,.15); }
+        .item { position: relative; display: flex; gap: 12px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+        .item:last-child { border-bottom: none; padding-bottom: 4px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 600; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+        .body { flex: 1; min-width: 0; }
+        .author { font-size: 13px; color: var(--ink-2); margin-bottom: 4px; }
+        .mine { display: inline-block; background: var(--brand-soft); color: var(--brand-dark); border-radius: 999px; font-size: 11px; line-height: 1.7; padding: 0 8px; margin-left: 6px; }
+        .content { font-size: 15px; line-height: 1.7; margin: 0; }
+        .foot { margin-top: 8px; font-size: 13px; color: var(--ink-2); display: flex; gap: 16px; align-items: center; font-variant-numeric: tabular-nums; }
+        .like { border: none; background: none; cursor: pointer; color: var(--ink-2); font-size: 13px; padding: 2px 6px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; transition: all .15s ease; }
+        .like:hover { color: var(--brand); background: var(--brand-soft); }
+        .like.liked { color: var(--brand); font-weight: 600; }
+        /* 幽灵删除按钮:平时低调,hover 才出现淡红底 */
+        .del { position: absolute; top: 16px; right: 0; border: none; background: none; color: var(--danger); font-size: 12px; padding: 4px 10px; border-radius: 8px; cursor: pointer; opacity: .72; transition: all .15s ease; }
+        .del:hover { opacity: 1; background: rgba(220,38,38,.08); }
+        button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+          * { transition: none !important; animation: none !important; }
+        }
       `}</style>
+
+      <header className="case-head">
+        <p className="eyebrow">WEEK 4 · 列表渲染</p>
+        <h2 className="case-title">B 站评论区</h2>
+        <p className="case-desc">map 渲染、不可变更新、条件渲染、派生排序,一个案例练全。</p>
+      </header>
 
       <div className="head">
         <h3>评论</h3>
@@ -92,6 +137,10 @@ const App = () => {
       {sortedList.map((item) => (
         // key 必须用稳定唯一的 id,不能用索引:删除一条后索引会整体前移,React 会认错人
         <div className="item" key={item.id}>
+          {/* 条件渲染:uid 和当前登录用户相同,才是我的评论,才允许删除 */}
+          {item.uid === currentUser.uid && (
+            <button className="del" onClick={() => handleDelete(item.id)}>删除</button>
+          )}
           <div className="avatar" style={{ background: avatarColor(item.uid) }}>
             {item.author[0]}
           </div>
@@ -104,15 +153,11 @@ const App = () => {
             <div className="foot">
               <span>{item.time}</span>
               <button
-                className={likedIds.includes(item.id) ? 'liked' : ''}
+                className={likedIds.includes(item.id) ? 'like liked' : 'like'}
                 onClick={() => handleLike(item.id)}
               >
-                👍 {item.like}
+                {likedIds.includes(item.id) ? '♥' : '♡'} {item.like}
               </button>
-              {/* 条件渲染:uid 和当前登录用户相同,才是我的评论,才允许删除 */}
-              {item.uid === currentUser.uid && (
-                <button className="del" onClick={() => handleDelete(item.id)}>删除</button>
-              )}
             </div>
           </div>
         </div>

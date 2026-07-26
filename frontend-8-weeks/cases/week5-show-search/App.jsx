@@ -13,6 +13,7 @@
   (TVMaze 搜剧集),你要学的是"表单提交 + 四态渲染 + 网格卡片"这套模式,
   看懂模式即可,禁止把代码照抄到主线项目里。
 【使用规则】必须自己先写完并让 AI 验收后,才能打开本文件对照。
+【UI 说明】本案例使用统一设计系统,令牌含义见注释。
 */
 import { useState } from 'react';
 
@@ -44,26 +45,65 @@ const App = () => {
   return (
     <div className="app">
       <style>{`
-        .app { max-width: 960px; margin: 32px auto; padding: 0 16px; font-family: system-ui, sans-serif; color: #222; }
-        h2 { text-align: center; }
-        .bar { display: flex; gap: 8px; max-width: 480px; margin: 0 auto 28px; }
-        .bar input { flex: 1; padding: 10px 14px; font-size: 15px; border: 1px solid #ccc; border-radius: 8px; outline: none; }
-        .bar input:focus { border-color: #e50914; }
-        .bar button { padding: 10px 22px; font-size: 15px; border: none; border-radius: 8px; background: #e50914; color: #fff; cursor: pointer; }
-        .bar button:disabled { opacity: 0.6; cursor: not-allowed; }
-        .tip { text-align: center; color: #888; }
-        .tip.err { color: #e50914; }
-        /* auto-fill + minmax:一行能塞几个 160px 的卡片就塞几个,天然响应式 */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-        .card { border: 1px solid #eee; border-radius: 10px; overflow: hidden; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-        .cover { width: 100%; height: 220px; object-fit: cover; display: block; }
-        .placeholder { display: flex; align-items: center; justify-content: center; font-size: 48px; background: linear-gradient(135deg, #667eea, #764ba2); }
+        :root {
+          --brand: #0e9f6e;        /* 主色:清新绿(呼应小兔鲜) */
+          --brand-dark: #057a55;   /* hover 加深 */
+          --brand-soft: #e6f6f0;   /* 主色浅底(标签、选中态背景) */
+          --ink: #111827;          /* 主文字 */
+          --ink-2: #6b7280;        /* 次要文字 */
+          --bg: #f2f5f4;           /* 页面画布:带一点绿意的浅灰 */
+          --card: #ffffff;
+          --line: #e5e7eb;
+          --danger: #dc2626;
+          --radius: 14px;
+          --shadow: 0 1px 2px rgba(16,24,40,.05), 0 10px 28px rgba(16,24,40,.07);
+        }
+        * { box-sizing: border-box; }
+        body {
+          margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px;
+          background: var(--bg);
+          font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        .app { width: min(720px, 100%); background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px 32px; color: var(--ink); }
+        .eyebrow { margin: 0 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--brand); }
+        .case-title { margin: 0 0 4px; font-size: 21px; font-weight: 700; }
+        .case-desc { margin: 0; font-size: 14px; color: var(--ink-2); }
+        .bar { display: flex; gap: 8px; max-width: 480px; margin: 20px 0 24px; }
+        .bar input { flex: 1; min-width: 0; padding: 10px 12px; font-size: 15px; border: 1px solid var(--line); border-radius: 10px; outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
+        .bar input:hover { border-color: #d1d5db; }
+        .bar input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(14,159,110,.18); }
+        .bar button { padding: 10px 18px; font-size: 15px; border: none; border-radius: 10px; background: var(--brand); color: #fff; cursor: pointer; transition: all .15s ease; }
+        .bar button:hover { background: var(--brand-dark); transform: translateY(-1px); }
+        .bar button:disabled { opacity: .6; cursor: not-allowed; transform: none; background: var(--brand); }
+        /* 空状态 / 加载态:居中留白 + 图标,不能光秃秃一行字 */
+        .empty { text-align: center; padding: 40px 16px; color: var(--ink-2); }
+        .empty-icon { font-size: 40px; margin-bottom: 10px; }
+        .empty-title { margin: 0 0 4px; font-size: 16px; font-weight: 600; color: var(--ink); }
+        .empty-text { margin: 0; font-size: 14px; }
+        .spinner { width: 28px; height: 28px; margin: 0 auto 12px; border-radius: 50%; border: 3px solid var(--brand-soft); border-top-color: var(--brand); animation: spin .8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .alert { margin: 0; padding: 12px 16px; border-radius: 10px; background: rgba(220,38,38,.08); color: var(--danger); font-size: 14px; text-align: center; }
+        /* auto-fill + minmax:一行能塞几个 150px 的卡片就塞几个,天然响应式 */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+        .card { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--card); box-shadow: 0 1px 2px rgba(16,24,40,.05); transition: transform .15s ease, box-shadow .15s ease; }
+        .card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+        .cover { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; display: block; }
+        .placeholder { display: flex; align-items: center; justify-content: center; font-size: 44px; background: var(--brand-soft); }
         .info { padding: 10px 12px; }
-        .name { margin: 0 0 6px; font-size: 15px; }
-        .meta { margin: 0 0 4px; font-size: 12px; color: #888; }
+        .name { margin: 0 0 6px; font-size: 14px; line-height: 1.4; }
+        .meta { margin: 0 0 4px; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+        button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+          * { transition: none !important; animation: none !important; }
+        }
       `}</style>
 
-      <h2>📺 剧集搜索</h2>
+      <header className="case-head">
+        <p className="eyebrow">WEEK 5 · 搜索与网格</p>
+        <h2 className="case-title">剧集搜索</h2>
+        <p className="case-desc">表单提交 + 请求四态 + 响应式网格卡片,TVMaze 接口免 key。</p>
+      </header>
+
       <form className="bar" onSubmit={handleSubmit}>
         <input
           value={keyword}
@@ -75,12 +115,26 @@ const App = () => {
         </button>
       </form>
 
-      {status === 'idle' && <p className="tip">搜点什么试试,比如 dark、girls、western</p>}
-      {status === 'loading' && <p className="tip">正在搜索…</p>}
-      {status === 'error' && <p className="tip err">{errMsg}</p>}
+      {status === 'idle' && (
+        <div className="empty">
+          <div className="empty-icon">🍿</div>
+          <p className="empty-text">搜点什么试试,比如 dark、girls、western</p>
+        </div>
+      )}
+      {status === 'loading' && (
+        <div className="empty">
+          <div className="spinner" />
+          <p className="empty-text">正在搜索…</p>
+        </div>
+      )}
+      {status === 'error' && <p className="alert">{errMsg}</p>}
       {/* 第四态:请求成功但结果为空。必须和"成功有数据"分开处理,否则用户以为页面坏了 */}
       {status === 'success' && shows.length === 0 && (
-        <p className="tip">没有找到相关剧集,换个关键词试试</p>
+        <div className="empty">
+          <div className="empty-icon">🔍</div>
+          <p className="empty-title">没有找到相关剧集</p>
+          <p className="empty-text">换个关键词试试?英文剧名命中率更高</p>
+        </div>
       )}
 
       {status === 'success' && shows.length > 0 && (

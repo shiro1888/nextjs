@@ -6,15 +6,189 @@
   【怎么运行】双击本文件,用浏览器打开,页面本身只有一行字;
             按 F12 打开控制台(Console)查看全部输出结果
   【使用规则】必须自己先写完并让 AI 验收后,才能打开本文件对照!
+  【UI 说明】本案例使用统一设计系统,令牌含义见注释
 -->
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>学生成绩管理</title>
+  <style>
+    /* ===== 设计令牌:整套案例共用的 CSS 变量,含义见注释 ===== */
+    :root {
+      --brand: #0e9f6e;        /* 主色:清新绿(呼应小兔鲜) */
+      --brand-dark: #057a55;   /* hover 加深 */
+      --brand-soft: #e6f6f0;   /* 主色浅底(标签、选中态背景) */
+      --ink: #111827;          /* 主文字 */
+      --ink-2: #6b7280;        /* 次要文字 */
+      --bg: #f2f5f4;           /* 页面画布:带一点绿意的浅灰 */
+      --card: #ffffff;
+      --line: #e5e7eb;
+      --danger: #dc2626;
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(16,24,40,.05), 0 10px 28px rgba(16,24,40,.07);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      padding: 24px;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 440px;
+    }
+
+    /* 案例头部:eyebrow 小标签 + 标题 + 一句话说明 */
+    .case-head { margin-bottom: 16px; }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--brand);
+    }
+
+    .case-title {
+      font-size: 21px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .case-desc {
+      font-size: 14px;
+      color: var(--ink-2);
+      margin-top: 4px;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    /* 醒目的控制台提示条:主色浅底,这是本页最重要的一句话 */
+    .console-tip {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--brand-soft);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.7;
+      color: var(--brand-dark);
+      margin-bottom: 20px;
+    }
+
+    .console-tip kbd {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 12px;
+      font-weight: 400;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      padding: 1px 6px;
+    }
+
+    /* 控制台将输出的 5 个小节:圆形序号 + 函数名,序号数字用 tabular-nums */
+    .steps {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .steps li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .step-no {
+      flex: none;
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--brand-soft);
+      color: var(--brand-dark);
+      font-size: 12px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .steps code {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 13px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 1px 6px;
+      color: var(--brand-dark);
+    }
+
+    .footnote {
+      font-size: 12px;
+      color: var(--ink-2);
+      line-height: 1.7;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--line);
+      text-align: center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>学生成绩管理</h1>
-  <p>按 F12 打开控制台查看结果</p>
+  <div class="page">
+    <header class="case-head">
+      <div class="eyebrow">WEEK 2 · 对象数组</div>
+      <h1 class="case-title">学生成绩管理</h1>
+      <p class="case-desc">用 push / filter / reduce / sort 完成对象数组的增删查与统计。</p>
+    </header>
+
+    <div class="card">
+      <div class="console-tip">
+        <span>🖥️</span>
+        <div>按 <kbd>F12</kbd> 打开控制台(Console)查看结果——本案例的全部输出都在那里。</div>
+      </div>
+
+      <ul class="steps">
+        <li><span class="step-no">1</span><code>addStudent</code> 添加学生,console.table 打印表格</li>
+        <li><span class="step-no">2</span><code>removeStudent</code> 用 filter 按名字删除</li>
+        <li><span class="step-no">3</span><code>getAverage</code> 用 reduce 求平均分</li>
+        <li><span class="step-no">4</span><code>sortByScore</code> 浅拷贝后降序排序,不动原数组</li>
+        <li><span class="step-no">5</span><code>getTop</code> 打擂法找最高分学生</li>
+      </ul>
+
+      <p class="footnote">页面本身不渲染数据——这是一个专门练数组方法的控制台案例。</p>
+    </div>
+  </div>
 
   <script>
     // 数据用 let:removeStudent 会用 filter 生成新数组再赋值回来

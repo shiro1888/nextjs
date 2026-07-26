@@ -5,6 +5,8 @@
  * 【怎么运行】见本案例目录下的 README.md,
  *          本文件放到项目的 app/blog/[slug]/page.tsx(文件夹名带方括号)。
  * 【使用规则】必须自己先写完并让 AI 验收后,才能打开本文件对照。
+ * 【UI 说明】本案例使用统一设计系统(绿色主题,画布 #f2f5f4 + 白卡片 + emerald 主色);
+ *          这里用 Tailwind 实现是因为 create-next-app 默认自带,色值与其他案例的令牌一致。
  */
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -34,17 +36,33 @@ const PostPage = async ({ params }: Props) => {
   }
 
   return (
-    <main style={{ maxWidth: 640, margin: '40px auto', padding: '0 16px' }}>
-      <Link href='/blog'>← 返回列表</Link>
-      <h1 style={{ fontSize: 28, marginBottom: 4 }}>{post.title}</h1>
-      <p style={{ color: '#888', marginTop: 0 }}>{post.date}</p>
+    <main className="min-h-screen bg-[#f2f5f4] px-6 py-12 text-gray-900">
+      <article className="mx-auto max-w-2xl rounded-2xl bg-white p-8 shadow-[0_1px_2px_rgba(16,24,40,.05),0_10px_28px_rgba(16,24,40,.07)] sm:p-10">
+        <Link
+          href="/blog"
+          className="rounded text-sm font-medium text-emerald-600 transition-colors duration-150 hover:text-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 motion-reduce:transition-none"
+        >
+          ← 返回列表
+        </Link>
 
-      {/* 正文按空行拆成段落,一段渲染成一个 <p> */}
-      {post.content.split('\n\n').map((paragraph, index) => (
-        <p key={index} style={{ lineHeight: 1.8 }}>
-          {paragraph}
-        </p>
-      ))}
+        <header className="mt-6 border-b border-gray-200 pb-6">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-emerald-600">
+            Week 7 · 动态路由
+          </p>
+          <h1 className="mt-1 text-3xl font-bold leading-snug">{post.title}</h1>
+          <p className="mt-2 text-sm tabular-nums text-gray-500">{post.date}</p>
+        </header>
+
+        {/* 正文按空行拆成段落,一段渲染成一个 <p>;
+            max-w-prose 控制行长,leading-8 给出舒适行距 */}
+        <div className="max-w-prose">
+          {post.content.split('\n\n').map((paragraph, index) => (
+            <p key={index} className="mt-5 leading-8 text-gray-800">
+              {paragraph}
+            </p>
+          ))}
+        </div>
+      </article>
     </main>
   );
 };

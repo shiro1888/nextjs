@@ -8,60 +8,119 @@
   【怎么运行】双击本文件,用浏览器打开即可,无需任何服务器
   【使用规则】必须自己先写完一版、并让 AI 验收通过之后,
              才能打开本文件对照学习,否则等于抄答案,练不到手!
+  【UI 说明】本案例使用统一设计系统,令牌含义见注释
 -->
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <title>Tab 栏切换</title>
   <style>
+    /* ===== 设计令牌:整套案例共用一套变量,换主题只改这里 ===== */
+    :root {
+      --brand: #0e9f6e;        /* 主色:清新绿(呼应小兔鲜) */
+      --brand-dark: #057a55;   /* hover 加深 */
+      --brand-soft: #e6f6f0;   /* 主色浅底(标签、选中态背景) */
+      --ink: #111827;          /* 主文字 */
+      --ink-2: #6b7280;        /* 次要文字 */
+      --bg: #f2f5f4;           /* 页面画布:带一点绿意的浅灰 */
+      --card: #ffffff;
+      --line: #e5e7eb;
+      --danger: #dc2626;
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(16,24,40,.05), 0 10px 28px rgba(16,24,40,.07);
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #f0f2f5;
-      font-family: sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     }
+    /* 内容区:白色卡片,案例头部 + tab 栏 + 面板 */
     .tab-box {
-      width: 520px;
-      background: #fff;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      width: 560px;
+      max-width: 100%;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
     }
+    .case-head { margin-bottom: 18px; }
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--brand);
+    }
+    .case-head h1 { font-size: 21px; font-weight: 700; margin: 6px 0 4px; }
+    .case-head p { font-size: 14px; color: var(--ink-2); }
+
     .tab-header {
       display: flex;
-      border-bottom: 1px solid #e5e5e5;
+      border-bottom: 1px solid var(--line);
     }
     .tab-btn {
       flex: 1;
-      padding: 14px 0;
+      position: relative;
+      padding: 12px 0;
       border: none;
-      background: #fafafa;
-      font-size: 16px;
-      color: #666;
+      background: transparent;
+      font: inherit;
+      font-size: 15px;
+      color: var(--ink-2);
       cursor: pointer;
+      transition: color .15s ease, background .15s ease;
     }
-    /* 当前选中的选项卡:白底 + 主题色文字 + 顶部有一条色条 */
+    .tab-btn:hover { color: var(--ink); background: var(--brand-soft); }
+    .tab-btn:focus-visible {
+      outline: none;
+      border-radius: 8px 8px 0 0;
+      box-shadow: inset 0 0 0 2px rgba(14, 159, 110, 0.45);
+    }
+    /* 当前选中的选项卡:主题色文字 + 底部 2px 主题色指示条 */
     .tab-btn.active {
-      background: #fff;
-      color: #e4393c;
-      font-weight: bold;
-      border-top: 3px solid #e4393c;
+      color: var(--brand);
+      font-weight: 700;
+      background: transparent;
+    }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      left: 22%;
+      right: 22%;
+      bottom: -1px; /* 压在 tab-header 的分隔线上 */
+      height: 2px;
+      border-radius: 2px;
+      background: var(--brand);
     }
     .panel {
       display: none; /* 默认全部隐藏 */
-      padding: 28px;
+      padding: 20px 2px 0;
       line-height: 1.8;
-      color: #333;
-      min-height: 160px;
+      font-size: 14px;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums; /* 面板里的参数、评价数等数字等宽对齐 */
+      min-height: 140px;
     }
     .panel.active { display: block; } /* 只显示带 active 的那一块 */
+
+    /* 尊重系统「减弱动态效果」:关闭过渡动画 */
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
   </style>
 </head>
 <body>
   <div class="tab-box">
+    <header class="case-head">
+      <span class="eyebrow">WEEK 3 · 事件委托</span>
+      <h1>Tab 栏切换</h1>
+      <p>父元素只绑一个监听器,靠事件冒泡接住所有按钮的点击。</p>
+    </header>
     <!-- 每个按钮用 data-index 记住自己是第几个,点击时读出来用 -->
     <div class="tab-header">
       <button class="tab-btn active" data-index="0">商品介绍</button>
