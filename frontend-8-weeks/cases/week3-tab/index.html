@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--
+  【案例名】Tab 栏切换(事件委托版)
+  【练什么】
+    1. 事件委托:监听父元素一个,顶替逐个绑定 N 个
+    2. classList.toggle 配合索引做「排他」高亮
+    3. data-* 自定义属性在元素和数据之间传递信息
+  【怎么运行】双击本文件,用浏览器打开即可,无需任何服务器
+  【使用规则】必须自己先写完一版、并让 AI 验收通过之后,
+             才能打开本文件对照学习,否则等于抄答案,练不到手!
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tab 栏切换</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f0f2f5;
+      font-family: sans-serif;
+    }
+    .tab-box {
+      width: 520px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    .tab-header {
+      display: flex;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 14px 0;
+      border: none;
+      background: #fafafa;
+      font-size: 16px;
+      color: #666;
+      cursor: pointer;
+    }
+    /* 当前选中的选项卡:白底 + 主题色文字 + 顶部有一条色条 */
+    .tab-btn.active {
+      background: #fff;
+      color: #e4393c;
+      font-weight: bold;
+      border-top: 3px solid #e4393c;
+    }
+    .panel {
+      display: none; /* 默认全部隐藏 */
+      padding: 28px;
+      line-height: 1.8;
+      color: #333;
+      min-height: 160px;
+    }
+    .panel.active { display: block; } /* 只显示带 active 的那一块 */
+  </style>
+</head>
+<body>
+  <div class="tab-box">
+    <!-- 每个按钮用 data-index 记住自己是第几个,点击时读出来用 -->
+    <div class="tab-header">
+      <button class="tab-btn active" data-index="0">商品介绍</button>
+      <button class="tab-btn" data-index="1">规格参数</button>
+      <button class="tab-btn" data-index="2">用户评价</button>
+    </div>
+    <div class="tab-body">
+      <div class="panel active">
+        这里是「商品介绍」的内容。可以放商品图文详情、卖点说明等。
+      </div>
+      <div class="panel">
+        这里是「规格参数」的内容。例如:重量 300g、颜色 星空黑、保修 12 个月。
+      </div>
+      <div class="panel">
+        这里是「用户评价」的内容。例如:好评率 98%,共 12345 条评价。
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const header = document.querySelector('.tab-header');
+    const btns = [...header.children];
+    const panels = [...document.querySelectorAll('.panel')];
+
+    // 【为什么用事件委托,而不是给每个按钮各绑一个监听器?】
+    // 1. 省代码省内存:不管有 3 个还是 300 个 tab,都只需要 1 个监听器;
+    //    逐个绑定则要 N 个,每个监听器都占内存。
+    // 2. 动态新增也能用:将来用 JS 新插入一个 tab 按钮,不需要再补绑事件,
+    //    因为监听器在父元素身上,新按钮的点击照样会「冒泡」上来被接住。
+    // 3. 原理是事件冒泡:点击子元素后,事件会沿着 DOM 树往上传,
+    //    传到父元素 .tab-header 时被这里的监听器捕获,
+    //    再通过 e.target 拿到「真正被点的那个元素」。
+    header.addEventListener('click', (e) => {
+      // closest 从被点元素向上找最近的 .tab-btn;
+      // 点到的不是按钮(比如按钮间的缝隙)就返回 null,直接忽略
+      const btn = e.target.closest('.tab-btn');
+      if (!btn) return;
+
+      const index = Number(btn.dataset.index);
+
+      // 「排他」写法:遍历所有按钮/面板,只有序号等于 index 的才加 active。
+      // toggle 的第二个参数是布尔值:true 加类、false 移除类,
+      // 比先全部移除再单独添加的两步写法更简洁
+      btns.forEach((b, i) => b.classList.toggle('active', i === index));
+      panels.forEach((p, i) => p.classList.toggle('active', i === index));
+    });
+  </script>
+</body>
+</html>

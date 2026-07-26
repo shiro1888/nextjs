@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<!--
+  【案例名】纯 JS Todo List(待办清单)
+  【练什么】
+    1. 「数据数组 → 重新渲染列表」的数据驱动思路(React 的前身!)
+    2. 数组方法三件套:map / filter / 展开运算符
+    3. localStorage 持久化:刷新页面数据不丢
+    4. 事件委托处理动态生成的删除按钮和复选框
+  【怎么运行】双击本文件,用浏览器打开即可,无需任何服务器
+  【使用规则】必须自己先写完一版、并让 AI 验收通过之后,
+             才能打开本文件对照学习,否则等于抄答案,练不到手!
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>Todo List</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding-top: 60px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      font-family: sans-serif;
+    }
+    .todo-app {
+      width: 480px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      align-self: flex-start;
+    }
+    h1 { font-size: 22px; margin-bottom: 16px; color: #333; }
+    .input-row { display: flex; gap: 8px; }
+    .todo-input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .add-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #667eea;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .todo-list { list-style: none; margin-top: 16px; }
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 4px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .todo-item span { flex: 1; color: #333; }
+    /* 完成的任务:文字划线变灰 */
+    .todo-item.done span { text-decoration: line-through; color: #aaa; }
+    .del {
+      border: none;
+      background: #ffecec;
+      color: #e4393c;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .count { margin-top: 14px; font-size: 13px; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="todo-app">
+    <h1>我的待办清单</h1>
+    <div class="input-row">
+      <input class="todo-input" type="text" placeholder="输入任务,回车或点添加" />
+      <button class="add-btn">添加</button>
+    </div>
+    <ul class="todo-list"></ul>
+    <p class="count"></p>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'my-todos';
+    const input = document.querySelector('.todo-input');
+    const list = document.querySelector('.todo-list');
+    const countEl = document.querySelector('.count');
+
+    // 启动时从 localStorage 读回上次的数据;第一次打开时没有存过,就给空数组
+    // localStorage 只能存字符串,所以存取都要经过 JSON 转换
+    let todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+    const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+
+    // 把 < > 等特殊字符转义,防止用户输入 <script> 之类的内容破坏页面(XSS)
+    const escapeHtml = (str) =>
+      str.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    // 【核心思想】todos 数组是唯一的「真相来源」:
+    // 每次数据变化,就根据数组把整个列表重新画一遍,
+    // 而不是零散地手动 appendChild / removeChild 某个 <li>。
+    // 好处:界面永远和数据一致,不会出现「数据删了、页面还在」的错乱。
+    // 这正是 React 的核心理念「UI = f(数据)」的前身——
+    // 到了 React 里,你只改数据(setState),画面自动更新,连 render 都不用自己调。
+    const render = () => {
+      list.innerHTML = todos
+        .map((todo) => `
+          <li class="todo-item ${todo.done ? 'done' : ''}" data-id="${todo.id}">
+            <input type="checkbox" ${todo.done ? 'checked' : ''} />
+            <span>${escapeHtml(todo.text)}</span>
+            <button class="del">删除</button>
+          </li>
+        `)
+        .join('');
+      const left = todos.filter((t) => !t.done).length;
+      countEl.textContent = `还剩 ${left} 项未完成`;
+      save(); // 每次渲染顺便保存,数据和存储始终同步
+    };
+
+    const addTodo = () => {
+      const text = input.value.trim();
+      if (!text) return; // 空内容不添加
+      // 用 Date.now() 当唯一 id:删除、勾选时靠它找到对应的那条数据
+      // 注意这里生成了新数组([...旧数组, 新项]),而不是 todos.push——
+      // 「不直接改原数组」的习惯在 React 里是硬性要求,现在就养成
+      todos = [...todos, { id: Date.now(), text, done: false }];
+      input.value = '';
+      render();
+    };
+
+    document.querySelector('.add-btn').addEventListener('click', addTodo);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addTodo();
+    });
+
+    // 事件委托:删除按钮、复选框都是 render 时重新生成的,
+    // 如果逐个绑定,每次渲染后都得重绑一遍;绑在固定不变的父元素 list 上则一劳永逸
+    list.addEventListener('click', (e) => {
+      const item = e.target.closest('.todo-item');
+      if (!item) return;
+      const id = Number(item.dataset.id);
+
+      if (e.target.classList.contains('del')) {
+        // 删除 = 过滤掉这一条,得到新数组
+        todos = todos.filter((t) => t.id !== id);
+        render();
+      } else if (e.target.type === 'checkbox') {
+        // 勾选 = 只把这一条的 done 取反,其余原样保留(map + 展开)
+        todos = todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t));
+        render();
+      }
+    });
+
+    render(); // 首次进入页面,把 localStorage 里的旧数据画出来
+  </script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<!--
+  【案例名】轮播图(Carousel)
+  【练什么】
+    1. setInterval / clearInterval 定时器的开与关
+    2. 事件监听:点击箭头、点击圆点、鼠标移入移出
+    3. 索引边界处理:最后一张再往后 → 循环回第一张(取模运算)
+  【怎么运行】双击本文件,用浏览器打开即可,无需任何服务器
+  【使用规则】必须自己先写完一版、并让 AI 验收通过之后,
+             才能打开本文件对照学习,否则等于抄答案,练不到手!
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>轮播图</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f0f2f5;
+      font-family: sans-serif;
+    }
+    .carousel {
+      position: relative;
+      width: 600px;
+      height: 320px;
+      overflow: hidden; /* 关键:把滑出可视区的幻灯片裁掉,只露出当前一张 */
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+    /* track 是一条横向长带,4 张幻灯片并排;移动 track 就能切换画面 */
+    .track {
+      display: flex;
+      height: 100%;
+      transition: transform 0.5s ease; /* 滑动动画就来自这一行 */
+    }
+    .slide {
+      flex: 0 0 100%; /* 每张占满一屏宽,且不许被压缩 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 80px;
+      font-weight: bold;
+      color: #fff;
+    }
+    /* 用 CSS 渐变色块代替图片,免去图片文件 */
+    .slide:nth-child(1) { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .slide:nth-child(2) { background: linear-gradient(135deg, #f5576c, #f093fb); }
+    .slide:nth-child(3) { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    .slide:nth-child(4) { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.3);
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .arrow:hover { background: rgba(0, 0, 0, 0.6); }
+    .prev { left: 12px; }
+    .next { right: 12px; }
+    .dots {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+    }
+    .dot.active { background: #fff; }
+  </style>
+</head>
+<body>
+  <div class="carousel">
+    <div class="track">
+      <div class="slide">1</div>
+      <div class="slide">2</div>
+      <div class="slide">3</div>
+      <div class="slide">4</div>
+    </div>
+    <button class="arrow prev">&lt;</button>
+    <button class="arrow next">&gt;</button>
+    <div class="dots"></div>
+  </div>
+
+  <script>
+    const carousel = document.querySelector('.carousel');
+    const track = document.querySelector('.track');
+    const dotsBox = document.querySelector('.dots');
+    const SLIDE_COUNT = document.querySelectorAll('.slide').length;
+
+    let current = 0; // 当前显示第几张(从 0 开始数)
+    let timer = null; // 保存定时器编号,方便随时清除
+
+    // 小圆点用 JS 生成而不是写死在 HTML 里:
+    // 将来幻灯片数量变了,圆点数量会自动跟着变
+    for (let i = 0; i < SLIDE_COUNT; i += 1) {
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.dataset.index = i; // 把编号存在元素身上,点击时就知道要跳到第几张
+      dotsBox.appendChild(dot);
+    }
+    const dots = [...dotsBox.children];
+
+    // 渲染函数:只做一件事——把画面同步成 current 的样子。
+    // 自动播放、点箭头、点圆点,最后全都汇聚到这里,逻辑不重复
+    const render = () => {
+      track.style.transform = `translateX(${-current * 100}%)`;
+      dots.forEach((dot, i) => dot.classList.toggle('active', i === current));
+    };
+
+    // 跳转函数:统一处理索引越界。
+    // (index + SLIDE_COUNT) % SLIDE_COUNT 一个式子搞定两种越界:
+    //   往后越界:(4 + 4) % 4 = 0   → 最后一张的下一张是第一张
+    //   往前越界:(-1 + 4) % 4 = 3  → 第一张的上一张是最后一张
+    const goTo = (index) => {
+      current = (index + SLIDE_COUNT) % SLIDE_COUNT;
+      render();
+    };
+
+    const stop = () => clearInterval(timer);
+
+    // 开播前先 stop():防止重复调用 play() 叠加多个定时器,越滚越快
+    const play = () => {
+      stop();
+      timer = setInterval(() => goTo(current + 1), 2000);
+    };
+
+    document.querySelector('.prev').addEventListener('click', () => goTo(current - 1));
+    document.querySelector('.next').addEventListener('click', () => goTo(current + 1));
+
+    // 圆点用事件委托:只在父容器上绑一次,靠事件冒泡接住所有圆点的点击
+    dotsBox.addEventListener('click', (e) => {
+      if (e.target.classList.contains('dot')) {
+        goTo(Number(e.target.dataset.index));
+      }
+    });
+
+    // 鼠标悬停暂停、移出恢复,给用户看清内容的机会
+    carousel.addEventListener('mouseenter', stop);
+    carousel.addEventListener('mouseleave', play);
+
+    render();
+    play();
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!--
+  【案例名】学生成绩管理
+  【练什么】对象数组的增删查、数组方法(push/filter/reduce/sort/map)、
+            展开运算符 [...] 复制数组、console.table 调试技巧
+  【怎么运行】双击本文件,用浏览器打开,页面本身只有一行字;
+            按 F12 打开控制台(Console)查看全部输出结果
+  【使用规则】必须自己先写完并让 AI 验收后,才能打开本文件对照!
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>学生成绩管理</title>
+</head>
+<body>
+  <h1>学生成绩管理</h1>
+  <p>按 F12 打开控制台查看结果</p>
+
+  <script>
+    // 数据用 let:removeStudent 会用 filter 生成新数组再赋值回来
+    let students = [
+      { name: '张三', score: 88 },
+      { name: '李四', score: 92 },
+      { name: '王五', score: 65 },
+      { name: '赵六', score: 78 },
+      { name: '钱七', score: 95 },
+      { name: '孙八', score: 54 },
+      { name: '周九', score: 81 },
+      { name: '吴十', score: 73 },
+    ];
+
+    // ---------- 1. 添加学生 ----------
+    const addStudent = (name, score) => {
+      students.push({ name, score }); // {name} 是 {name: name} 的简写
+      console.log(`已添加:${name}(${score} 分),现在共 ${students.length} 人`);
+    };
+
+    console.log('====== 1. addStudent 添加学生 ======');
+    addStudent('郑十一', 87);
+    console.table(students); // console.table 把对象数组打成表格,比 log 直观得多
+
+    // ---------- 2. 按名字删除学生 ----------
+    const removeStudent = (name) => {
+      // filter 不会改原数组,而是"留下名字不相等的人"组成新数组,
+      // 这就是最常用的"删除"套路(React 里更新 state 也是这么删的)
+      students = students.filter((stu) => stu.name !== name);
+      console.log(`已删除:${name},现在共 ${students.length} 人`);
+    };
+
+    console.log('====== 2. removeStudent 删除学生 ======');
+    removeStudent('孙八');
+    console.table(students);
+
+    // ---------- 3. 求平均分 ----------
+    const getAverage = () => {
+      // reduce 把数组"卷"成一个值:sum 是累加器,0 是初始值
+      const total = students.reduce((sum, stu) => sum + stu.score, 0);
+      return total / students.length;
+    };
+
+    console.log('====== 3. getAverage 求平均分 ======');
+    // toFixed(1) 保留 1 位小数,避免 81.66666... 这种长尾巴
+    console.log(`平均分:${getAverage().toFixed(1)} 分`);
+
+    // ---------- 4. 按分数降序排序(不修改原数组)----------
+    const sortByScore = () => {
+      // 坑点:sort 会直接修改原数组!所以先用 [...students] 浅拷贝一份再排,
+      // 这样调用完 sortByScore,原来的 students 顺序不变
+      return [...students].sort((a, b) => b.score - a.score); // b - a 是降序
+    };
+
+    console.log('====== 4. sortByScore 降序排序 ======');
+    console.table(sortByScore());
+    console.log('验证原数组没被改动(第一个还是张三):');
+    console.table(students);
+
+    // ---------- 5. 找最高分学生 ----------
+    const getTop = () => {
+      // 思路:拿第一个人当"擂主",逐个打擂,分更高就换人
+      return students.reduce((top, stu) => (stu.score > top.score ? stu : top));
+    };
+
+    console.log('====== 5. getTop 最高分学生 ======');
+    const top = getTop();
+    console.log(`最高分:${top.name},${top.score} 分`);
+  </script>
+</body>
+</html>

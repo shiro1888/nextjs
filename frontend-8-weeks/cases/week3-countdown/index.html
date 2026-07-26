@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>秒杀倒计时</title>
+<!--
+  【案例名】秒杀倒计时
+  【练什么】Date 对象、时间戳计算、setInterval / clearInterval、padStart 补零
+  【怎么运行】直接双击本文件,在浏览器中打开即可(目标时间 = 打开页面后 10 分钟)
+  【使用规则】必须自己先把这个案例写完,并让 AI 验收通过后,才能打开本文件对照学习。
+            直接抄参考代码 = 白学。
+  【测试小技巧】想快点看到「活动已开始」,把下面的 10 * 60 * 1000 改成 5 * 1000(5 秒)即可。
+-->
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+  }
+  .card {
+    background: linear-gradient(135deg, #e94560, #c9184a);
+    color: #fff;
+    padding: 40px 60px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(233, 69, 96, 0.4);
+  }
+  h1 { margin: 0 0 8px; font-size: 24px; }
+  .tip { margin: 0 0 24px; font-size: 14px; opacity: 0.85; }
+  /* 用等宽数字字体,数字跳动时宽度不变,页面不会左右抖动 */
+  .timer {
+    font-size: 56px;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+  }
+  .started { font-size: 40px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>⚡ 限时秒杀 ⚡</h1>
+  <p class="tip">距离活动开始还剩</p>
+  <div class="timer" id="timer">--:--:--</div>
+</div>
+
+<script>
+  const timerEl = document.querySelector('#timer');
+
+  // 目标时间 = 现在的时间戳 + 10 分钟(毫秒)。
+  // Date.now() 返回从 1970-01-01 到现在的毫秒数,用「毫秒数」做加减法比操作年月日简单得多。
+  // 10 分钟 = 10 * 60 秒 * 1000 毫秒,写成算式比直接写 600000 更容易看懂和修改。
+  const targetTime = Date.now() + 10 * 60 * 1000;
+
+  // 把数字补成两位字符串:5 -> '05',12 -> '12'。
+  // padStart(2, '0') 的意思是:如果字符串不够 2 位,就在「前面」补 '0'。
+  // 注意要先用 String() 把数字转成字符串,数字本身没有 padStart 方法。
+  const pad = (n) => String(n).padStart(2, '0');
+
+  const render = () => {
+    // 剩余毫秒数。每次都重新用「目标时间 - 当前时间」计算,
+    // 而不是维护一个每秒减 1 的变量——因为 setInterval 并不精确,
+    // 页面切到后台时甚至会暂停,靠减 1 累计会越来越不准。
+    const remaining = targetTime - Date.now();
+
+    if (remaining <= 0) {
+      timerEl.textContent = '活动已开始 🎉';
+      timerEl.classList.add('started');
+      // 【必须清除定时器!】如果不 clearInterval,这个函数会每秒继续执行一次,
+      // 一直到页面关闭为止:白白消耗性能,还会反复改写 DOM。
+      // 在真实项目里(尤其是单页应用),忘记清除定时器是最常见的内存泄漏原因之一。
+      clearInterval(timerId);
+      return;
+    }
+
+    // 把毫秒换算成 时:分:秒。
+    // Math.floor 向下取整;% 取余数,用来去掉已经算进上一级单位的部分。
+    // 例如 remaining = 599000 毫秒 -> 总共 599 秒 -> 0 时 9 分 59 秒。
+    const totalSeconds = Math.floor(remaining / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    timerEl.textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  };
+
+  // setInterval 返回一个数字 id,必须保存下来,之后 clearInterval(id) 才能停掉它。
+  const timerId = setInterval(render, 1000);
+
+  // setInterval 要等 1 秒后才第一次执行,页面刚打开会有 1 秒的空白,
+  // 所以先手动调用一次,立刻显示出初始时间。
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+  【案例名】ATM 取款机
+  【练什么】while 循环、if/else if 分支、prompt/alert 交互、
+            数字转换与非法输入校验
+  【怎么运行】双击本文件,用浏览器打开,会自动弹出输入框;
+            同时按 F12 打开控制台,能看到每笔操作的流水记录
+  【使用规则】必须自己先写完并让 AI 验收后,才能打开本文件对照!
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>ATM 取款机</title>
+</head>
+<body>
+  <h1>ATM 取款机(纯 JS 弹窗版)</h1>
+  <p>打开页面会自动弹出操作菜单;按 F12 打开控制台可以看到操作流水。</p>
+  <p>如果不小心点了取消,刷新页面可以重新开始。</p>
+
+  <script>
+    // 余额用 let:因为存取款会修改它;菜单文字不变,用 const
+    let balance = 100;
+    const menu = '请输入操作编号:\n1 存款\n2 取款\n3 查余额\n4 退出';
+
+    // 死循环 + break 是"菜单程序"的经典写法:
+    // 不知道用户要操作几次,所以循环条件写 true,由"4 退出"来跳出
+    while (true) {
+      const input = prompt(menu);
+
+      // 用户点了"取消"按钮时 prompt 返回 null,当成退出处理,避免死循环
+      if (input === null) {
+        alert('已取消操作,退出系统');
+        console.log('[流水] 用户取消,退出');
+        break;
+      }
+
+      if (input === '1') {
+        // prompt 拿到的永远是字符串,必须用 Number() 转成数字再做加减
+        const amount = Number(prompt('请输入存款金额:'));
+
+        // 三种非法情况一起拦:不是数字(NaN)、零、负数
+        if (Number.isNaN(amount) || amount <= 0) {
+          alert('金额不合法,请输入大于 0 的数字');
+          console.log('[流水] 存款失败:非法金额');
+          continue; // 跳过本次循环剩余代码,直接回到菜单
+        }
+
+        balance = balance + amount;
+        alert(`存款成功!当前余额:${balance} 元`);
+        console.log(`[流水] 存款 ${amount} 元,余额 ${balance} 元`);
+      } else if (input === '2') {
+        const amount = Number(prompt('请输入取款金额:'));
+
+        if (Number.isNaN(amount) || amount <= 0) {
+          alert('金额不合法,请输入大于 0 的数字');
+          console.log('[流水] 取款失败:非法金额');
+          continue;
+        }
+
+        // 关键校验:先判断够不够,不够就不动余额,保证永远不会取成负数
+        if (amount > balance) {
+          alert(`余额不足!当前余额只有 ${balance} 元`);
+          console.log(`[流水] 取款失败:想取 ${amount} 元,余额仅 ${balance} 元`);
+          continue;
+        }
+
+        balance = balance - amount;
+        alert(`取款成功!当前余额:${balance} 元`);
+        console.log(`[流水] 取款 ${amount} 元,余额 ${balance} 元`);
+      } else if (input === '3') {
+        alert(`当前余额:${balance} 元`);
+        console.log(`[流水] 查询余额:${balance} 元`);
+      } else if (input === '4') {
+        alert('感谢使用,再见!');
+        console.log('[流水] 正常退出');
+        break; // 唯一的正常出口:跳出 while 循环,程序结束
+      } else {
+        // 走到这里说明输入不是 1~4,提示后循环会自动回到菜单
+        alert(`没有「${input}」这个选项,请输入 1、2、3 或 4`);
+        console.log(`[流水] 非法输入:${input}`);
+      }
+    }
+  </script>
+</body>
+</html>

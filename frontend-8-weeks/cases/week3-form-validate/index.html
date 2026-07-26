@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>注册表单验证</title>
+<!--
+  【案例名】注册表单验证
+  【练什么】表单事件(blur / submit)、preventDefault、正则表达式初步、DOM 显示错误提示
+  【怎么运行】直接双击本文件,在浏览器中打开即可
+  【使用规则】必须自己先把这个案例写完,并让 AI 验收通过后,才能打开本文件对照学习。
+            直接抄参考代码 = 白学。
+-->
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+  }
+  form {
+    background: #fff;
+    padding: 32px 40px;
+    border-radius: 12px;
+    width: 320px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+  h2 { margin-top: 0; text-align: center; }
+  .field { margin-bottom: 18px; }
+  label { display: block; margin-bottom: 6px; font-size: 14px; color: #333; }
+  input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box; /* 让 width:100% 包含内边距,不然输入框会撑出容器 */
+  }
+  input:focus { outline: none; border-color: #667eea; }
+  /* 错误提示默认占位但不显示内容,避免出现提示时页面跳动 */
+  .error { color: #e63946; font-size: 12px; min-height: 16px; margin: 4px 0 0; }
+  input.invalid { border-color: #e63946; }
+  button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    background: #667eea;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  button:hover { background: #5a6fd6; }
+  .success { color: #2a9d8f; text-align: center; min-height: 20px; margin: 12px 0 0; }
+</style>
+</head>
+<body>
+<!-- novalidate:关闭浏览器自带的校验气泡,完全由我们自己的 JS 来控制提示 -->
+<form id="regForm" novalidate>
+  <h2>注册</h2>
+  <div class="field">
+    <label for="username">用户名(3-10 位字母或数字)</label>
+    <input type="text" id="username" name="username" />
+    <p class="error" id="username-error"></p>
+  </div>
+  <div class="field">
+    <label for="phone">手机号</label>
+    <input type="text" id="phone" name="phone" />
+    <p class="error" id="phone-error"></p>
+  </div>
+  <div class="field">
+    <label for="password">密码(至少 6 位)</label>
+    <input type="password" id="password" name="password" />
+    <p class="error" id="password-error"></p>
+  </div>
+  <div class="field">
+    <label for="confirm">确认密码</label>
+    <input type="password" id="confirm" name="confirm" />
+    <p class="error" id="confirm-error"></p>
+  </div>
+  <button type="submit">注 册</button>
+  <p class="success" id="successMsg"></p>
+</form>
+
+<script>
+  const form = document.querySelector('#regForm');
+  const successMsg = document.querySelector('#successMsg');
+
+  // 把「每个字段怎么校验」集中写成一个配置对象:
+  // key 是输入框的 id,value 是校验函数——合法返回空字符串,不合法返回错误文案。
+  // 这样新增字段只需要加一条配置,不用复制粘贴一大段 if/else。
+  const validators = {
+    username: (value) => {
+      // ^ 和 $ 表示从头到尾整体匹配;[a-zA-Z0-9]{3,10} 表示 3 到 10 个字母或数字
+      return /^[a-zA-Z0-9]{3,10}$/.test(value) ? '' : '用户名必须是 3-10 位字母或数字';
+    },
+    phone: (value) => {
+      // 1 开头,第二位 3-9,后面再跟 9 个数字,共 11 位
+      return /^1[3-9]\d{9}$/.test(value) ? '' : '请输入正确的 11 位手机号';
+    },
+    password: (value) => {
+      return value.length >= 6 ? '' : '密码至少需要 6 位';
+    },
+    confirm: (value) => {
+      // 确认密码要和密码框的「当前值」比较,所以在函数里实时读取,而不是提前存变量。
+      // 注意也要 trim():validateField 传进来的 value 已经 trim 过,
+      // 两边必须同样处理,否则密码首尾带空格时会误报「不一致」。
+      const password = document.querySelector('#password').value.trim();
+      return value === password ? '' : '两次输入的密码不一致';
+    },
+  };
+
+  // 校验单个字段:返回 true 表示通过。错误信息显示在对应输入框下方的 <p> 里
+  const validateField = (id) => {
+    const input = document.querySelector(`#${id}`);
+    const errorEl = document.querySelector(`#${id}-error`);
+    const message = validators[id](input.value.trim());
+    errorEl.textContent = message;
+    // classList.toggle 第二个参数:true 加类,false 移除类,比 if/else 简洁
+    input.classList.toggle('invalid', message !== '');
+    return message === '';
+  };
+
+  // 给每个字段绑定 blur 事件(失去焦点时单项校验)
+  // Object.keys 拿到 ['username', 'phone', ...],用 forEach 批量绑定,避免写四遍
+  Object.keys(validators).forEach((id) => {
+    document.querySelector(`#${id}`).addEventListener('blur', () => {
+      validateField(id);
+    });
+  });
+
+  form.addEventListener('submit', (e) => {
+    // 注意:不能写成 .every(validateField),因为 every 遇到 false 会提前停止,
+    // 后面的字段就不会显示错误提示了。先用 map 把每个字段都校验一遍,
+    // 再用 every 判断是否全部通过,这样所有错误能同时显示出来。
+    const results = Object.keys(validators).map((id) => validateField(id));
+    const allPassed = results.every((ok) => ok);
+
+    if (!allPassed) {
+      // 阻止表单默认的提交行为(提交会刷新页面,错误提示就看不到了)
+      e.preventDefault();
+      successMsg.textContent = '';
+      return;
+    }
+    // 本案例没有后端,通过时也阻止默认提交,只显示成功提示
+    e.preventDefault();
+    successMsg.textContent = '🎉 注册成功!';
+  });
+</script>
+</body>
+</html>

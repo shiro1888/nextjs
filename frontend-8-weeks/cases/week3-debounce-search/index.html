@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>搜索防抖联想</title>
+<!--
+  【案例名】搜索防抖联想
+  【练什么】input 事件、setTimeout / clearTimeout 实现防抖、数组 filter、动态渲染列表
+  【怎么运行】直接双击本文件,在浏览器中打开即可;在输入框里试着快速打字,
+            观察下方建议列表是「停止输入 500 毫秒后」才更新的。
+  【使用规则】必须自己先把这个案例写完,并让 AI 验收通过后,才能打开本文件对照学习。
+            直接抄参考代码 = 白学。
+-->
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: linear-gradient(135deg, #43cea2, #185a9d);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding-top: 100px;
+    margin: 0;
+  }
+  .search-box { width: 400px; }
+  input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+  input:focus { outline: 2px solid #185a9d; }
+  ul {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+  li { padding: 10px 16px; cursor: pointer; font-size: 14px; }
+  li:hover { background: #e8f5f0; }
+  li.empty { color: #999; cursor: default; }
+  li.empty:hover { background: #fff; }
+</style>
+</head>
+<body>
+<div class="search-box">
+  <input type="text" id="searchInput" placeholder="🔍 搜索前端知识点,如 react、flex…" />
+  <ul id="suggestList"></ul>
+</div>
+
+<script>
+  // 内置的 20 个词条,真实项目里这一步通常是发请求向服务器要数据
+  const keywords = [
+    'javascript', 'typescript', 'react', 'vue', 'next.js',
+    'node.js', 'flex 布局', 'grid 布局', 'css 动画', 'css 变量',
+    'html 语义化', 'dom 操作', '事件冒泡', '事件委托', 'promise',
+    'async/await', 'fetch 请求', '防抖与节流', '闭包', '原型链',
+  ];
+
+  const input = document.querySelector('#searchInput');
+  const list = document.querySelector('#suggestList');
+
+  // 【防抖原理,一段话讲清】用户每敲一个字都会触发一次 input 事件,如果每次都立刻
+  // 去过滤/发请求,输入「react」这 5 个字母就会执行 5 次,前 4 次的结果马上被覆盖,
+  // 全是浪费。防抖的思路是:每次触发时不立刻执行,而是「约定 500 毫秒后再执行」
+  // (setTimeout);如果 500 毫秒内用户又输入了,就用 clearTimeout 取消上一次的约定,
+  // 重新约一个 500 毫秒。这样只要用户还在连续输入,任务就一直被推迟,
+  // 只有停止输入满 500 毫秒,最后那一次 setTimeout 才真正执行——多次触发合并成一次。
+  // clearTimeout 是关键:不取消旧定时器的话,之前每次输入约定的任务到点都会执行,
+  // 那就和不做防抖没区别了。
+  let timerId = null;
+
+  // 根据关键词过滤并渲染建议列表
+  const renderSuggestions = (query) => {
+    // 统一转小写再比较,这样输入 REACT 也能搜到 react(忽略大小写)
+    const matched = keywords.filter((word) => word.toLowerCase().includes(query.toLowerCase()));
+
+    if (matched.length === 0) {
+      list.innerHTML = '<li class="empty">没有匹配的结果</li>';
+      return;
+    }
+
+    // 用 map 把每个词条变成一段 <li> 字符串,再用 join('') 拼起来一次性插入。
+    // 比在循环里反复 appendChild 更简洁,也只改一次 DOM。
+    list.innerHTML = matched.map((word) => `<li>${word}</li>`).join('');
+  };
+
+  input.addEventListener('input', () => {
+    // 先取消上一次还没执行的定时器(第一次输入时 timerId 是 null,
+    // clearTimeout(null) 什么也不做,不会报错,所以不需要额外判断)
+    clearTimeout(timerId);
+
+    const query = input.value.trim();
+
+    // 输入为空时立刻清空列表,不需要等 500 毫秒——清空是很轻的操作,
+    // 而且用户删光文字后期望列表马上消失
+    if (query === '') {
+      list.innerHTML = '';
+      return;
+    }
+
+    // 约定 500 毫秒后执行;timerId 记录下来,供下一次输入时取消
+    timerId = setTimeout(() => {
+      renderSuggestions(query);
+    }, 500);
+  });
+
+  // 小福利:点击某条建议,把它填进输入框并收起列表。
+  // 事件绑定在 ul 上而不是每个 li 上(事件委托),因为 li 是动态生成的,
+  // 每次重新渲染后旧 li 上绑的事件都会随元素一起消失。
+  list.addEventListener('click', (e) => {
+    if (e.target.tagName === 'LI' && !e.target.classList.contains('empty')) {
+      input.value = e.target.textContent;
+      list.innerHTML = '';
+    }
+  });
+</script>
+</body>
+</html>

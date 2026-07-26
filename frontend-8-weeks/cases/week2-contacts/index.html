@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>通讯录 CRUD - 增删查思维练习</title>
+  <!--
+    【案例名】通讯录 CRUD(增 Add / 删 Remove / 查 Search / 列 List)
+    【练什么】用函数封装对数组的增删查操作,体会 some / filter /
+             findIndex / includes 各自适合什么场景。
+    【怎么运行】双击本文件在浏览器打开,按 F12 打开开发者工具,
+             切到 Console(控制台)面板查看演示输出。
+    【使用规则】必须自己先把这个案例写完,并让 AI 验收通过后,
+             才能打开本文件对照参考。直接抄 = 白学。
+  -->
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #e0f2fe, #ede9fe);
+    }
+    .tip {
+      padding: 24px 40px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      font-size: 18px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <p class="tip">📇 本案例的结果全部在控制台,请按 F12 查看 Console 面板</p>
+
+  <script>
+    // 通讯录数据:用 let 而不是 const,因为 remove 时会给它赋一个新数组
+    let contacts = [
+      { name: '张三', phone: '13800000001' },
+      { name: '李四', phone: '13800000002' },
+      { name: '王五丽', phone: '13800000003' },
+    ];
+
+    // ============ 增:add ============
+    // some:只要数组里"有一个"满足条件就返回 true,适合做"存在性检查"。
+    // 重名时提示并拒绝(return false 表示添加失败),否则 push 进去。
+    const add = (name, phone) => {
+      const exists = contacts.some((item) => item.name === name);
+      if (exists) {
+        console.warn(`添加失败:「${name}」已存在,请换个名字`);
+        return false;
+      }
+      contacts.push({ name, phone }); // { name, phone } 是对象属性简写
+      console.log(`添加成功:${name} - ${phone}`);
+      return true;
+    };
+
+    // ============ 删:remove ============
+    // 删除的思路是"留下不等于该名字的",filter 生成新数组再整体替换。
+    // 先比较前后长度就能知道有没有真的删掉人。
+    const remove = (name) => {
+      const before = contacts.length;
+      contacts = contacts.filter((item) => item.name !== name);
+      if (contacts.length === before) {
+        console.warn(`删除失败:没有找到「${name}」`);
+        return false;
+      }
+      console.log(`删除成功:${name}`);
+      return true;
+    };
+
+    // ============ 查:search ============
+    // 模糊匹配:名字里"包含"关键字就算命中,用字符串的 includes。
+    // 返回数组而不是直接打印,这样调用者可以自由决定怎么用结果。
+    const search = (keyword) => contacts.filter((item) => item.name.includes(keyword));
+
+    // ============ 列:list ============
+    const list = () => {
+      console.log(`===== 通讯录(共 ${contacts.length} 人)=====`);
+      // forEach 的第二个参数是下标 index,用来打印序号(从 1 开始更符合人类习惯)
+      contacts.forEach((item, index) => {
+        console.log(`${index + 1}. ${item.name} - ${item.phone}`);
+      });
+    };
+
+    // ==================== 演示调用 ====================
+    console.log('--- 初始状态 ---');
+    list();
+
+    console.log('--- 添加两个人,其中一个重名 ---');
+    add('赵六', '13900000006');
+    add('张三', '13900000099'); // 重名,应被拒绝
+
+    console.log('--- 删除一个存在的和一个不存在的 ---');
+    remove('李四');
+    remove('不存在的人');
+
+    console.log('--- 模糊搜索「五」 ---');
+    const result = search('五');
+    console.log('搜索结果:', result);
+
+    console.log('--- 最终状态 ---');
+    list();
+  </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>购物车结算 - map/filter/reduce 练习</title>
+  <!--
+    【案例名】购物车结算
+    【练什么】数组三兄弟:map(转换)、filter(筛选)、reduce(汇总),
+             以及模板字符串、toFixed 处理金额。
+    【怎么运行】双击本文件在浏览器打开,按 F12 打开开发者工具,
+             切到 Console(控制台)面板查看全部输出结果。
+    【使用规则】必须自己先把这个案例写完,并让 AI 验收通过后,
+             才能打开本文件对照参考。直接抄 = 白学。
+  -->
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #fdf6e3, #ffe9d6);
+    }
+    .tip {
+      padding: 24px 40px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      font-size: 18px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <p class="tip">🛒 本案例的结果全部在控制台,请按 F12 查看 Console 面板</p>
+
+  <script>
+    // 内置商品数据:checked 表示用户在页面上有没有勾选这件商品
+    const goods = [
+      { name: '机械键盘', price: 299, count: 1, checked: true },
+      { name: '无线鼠标', price: 89, count: 2, checked: true },
+      { name: '显示器支架', price: 159, count: 1, checked: false },
+      { name: '降噪耳机', price: 499, count: 1, checked: true },
+      { name: 'USB 集线器', price: 45, count: 3, checked: false },
+    ];
+
+    // ============ 1. 选中商品总价(reduce) ============
+    // reduce 的第二个参数 0 是累加的起点(初始值),
+    // 每一轮把上一轮的结果 sum 和当前商品算出的小计加在一起。
+    // 没勾选的商品不参与计算,所以先用 filter 挑出 checked 的。
+    const checkedGoods = goods.filter((item) => item.checked);
+    const total = checkedGoods.reduce((sum, item) => sum + item.price * item.count, 0);
+    console.log('1. 选中商品总价:', total, '元');
+
+    // ============ 2. 满 300 减 50 的实付金额 ============
+    // 三元表达式:条件 ? 满足时的值 : 不满足时的值
+    const payAmount = total >= 300 ? total - 50 : total;
+    console.log('2. 实付金额(满300减50):', payAmount, '元');
+
+    // ============ 3. 筛选单价 > 100 的商品(filter) ============
+    // filter 返回一个"新数组",原数组 goods 不会被改动——
+    // 这是数组方法比 for 循环好用的地方:不破坏原始数据。
+    const expensive = goods.filter((item) => item.price > 100);
+    console.log('3. 单价大于 100 的商品:');
+    console.table(expensive); // console.table 能把对象数组打印成表格,调试神器
+
+    // ============ 4. 生成小票字符串(map + join) ============
+    // map 把"商品对象"逐个转换成"一行文字",得到字符串数组,
+    // 再用 join('\n') 把它们用换行符拼成一整张小票。
+    // 金额用 toFixed(2) 保留两位小数,像真实小票一样。
+    const lines = checkedGoods.map(
+      (item) => `${item.name} x ${item.count} = ${(item.price * item.count).toFixed(2)} 元`
+    );
+    const receipt = [
+      '========= 购物小票 =========',
+      ...lines, // 展开运算符:把 lines 数组的每一项平铺进来
+      '----------------------------',
+      `商品总计:${total.toFixed(2)} 元`,
+      `优惠减免:-${(total - payAmount).toFixed(2)} 元`,
+      `实付金额:${payAmount.toFixed(2)} 元`,
+      '============================',
+    ].join('\n');
+    console.log('4. 小票内容:\n' + receipt);
+  </script>
+</body>
+</html>
